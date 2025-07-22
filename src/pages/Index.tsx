@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { GeneSearch } from '@/components/GeneSearch';
 import { GeneDataDisplay } from '@/components/GeneDataDisplay';
 import { GeneDataTable } from '@/components/GeneDataTable';
+import { AuthButton } from '@/components/AuthButton';
 
 // Mock data for demonstration
 const mockGeneData = {
@@ -119,6 +120,7 @@ const Index = () => {
             </div>
             
             <div className="flex items-center gap-2">
+              <AuthButton />
               <Button 
                 variant="outline" 
                 size="sm" 
