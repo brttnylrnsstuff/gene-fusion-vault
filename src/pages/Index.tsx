@@ -8,8 +8,23 @@ import { GeneDataTable } from '@/components/GeneDataTable';
 
 // Mock data for demonstration
 const mockGeneData = {
-  id: 'BRCA1',
+  id: 'uuid-brca1-123',
   symbol: 'BRCA1',
+  entrez_id: '672',
+  name: 'BRCA1 DNA repair associated',
+  description: 'This gene encodes a 190 kD nuclear phosphoprotein that plays a role in maintaining genomic stability and acts as a tumor suppressor.',
+  created_at: '2024-01-15T00:00:00Z',
+  updated_at: '2024-01-15T00:00:00Z',
+  internal_fields: {
+    id: 'uuid-internal-123',
+    gene_id: 'uuid-brca1-123',
+    user_id: 'user-123',
+    notes: 'High priority target for breast cancer research. Associated with hereditary breast and ovarian cancer syndrome.',
+    assigned_to: 'Dr. Smith',
+    tags: ['cancer', 'tumor-suppressor', 'DNA-repair', 'hereditary'],
+    created_at: '2024-01-15T00:00:00Z',
+    updated_at: '2024-01-15T00:00:00Z'
+  },
   entrezData: {
     name: 'BRCA1 DNA repair associated',
     description: 'This gene encodes a 190 kD nuclear phosphoprotein that plays a role in maintaining genomic stability and acts as a tumor suppressor.',
@@ -25,13 +40,6 @@ const mockGeneData = {
     keywords: ['3D-structure', 'Cancer', 'DNA damage', 'DNA repair', 'Ligase', 'Nuclear', 'Phosphoprotein', 'Tumor suppressor', 'Ubl conjugation'],
     length: 1863,
     mass: '207.7 kDa',
-  },
-  internalFields: {
-    notes: 'High priority target for breast cancer research. Associated with hereditary breast and ovarian cancer syndrome.',
-    tags: ['cancer', 'tumor-suppressor', 'DNA-repair', 'hereditary'],
-    priority: 'High' as const,
-    lastModified: '2024-01-15',
-    assignedTo: 'Dr. Smith',
   },
 };
 
