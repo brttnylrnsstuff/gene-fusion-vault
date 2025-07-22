@@ -173,6 +173,25 @@ export const useGenes = () => {
     }
   };
 
+  const fetchExternalGeneData = async (geneSymbol: string) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('fetch-gene-data', {
+        body: { geneSymbol }
+      });
+
+      if (error) throw error;
+
+      return data;
+    } catch (error: any) {
+      toast({
+        title: "Error fetching external gene data",
+        description: error.message,
+        variant: "destructive",
+      });
+      return null;
+    }
+  };
+
   useEffect(() => {
     fetchGenes();
   }, []);
@@ -183,6 +202,7 @@ export const useGenes = () => {
     fetchGenes,
     saveGene,
     updateInternalFields,
-    searchGenes
+    searchGenes,
+    fetchExternalGeneData
   };
 };
