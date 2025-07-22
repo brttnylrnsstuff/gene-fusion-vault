@@ -13,7 +13,15 @@ serve(async (req) => {
   }
 
   try {
-    const { geneSymbol } = await req.json();
+    let geneSymbol;
+    
+    if (req.method === 'POST') {
+      const body = await req.json();
+      geneSymbol = body.geneSymbol;
+    } else if (req.method === 'GET') {
+      const url = new URL(req.url);
+      geneSymbol = url.searchParams.get('geneSymbol');
+    }
 
     if (!geneSymbol) {
       return new Response(
