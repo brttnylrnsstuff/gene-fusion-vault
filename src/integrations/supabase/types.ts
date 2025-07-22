@@ -47,33 +47,105 @@ export type Database = {
       internal_fields: {
         Row: {
           assigned_to: string | null
+          catalog_num: string | null
+          clonality: string | null
+          clone: string | null
+          country_of_origin: string | null
           created_at: string
+          datasheet_url: string | null
+          expression_system: string | null
           gene_id: string
+          host: string | null
           id: string
+          image_caption: string | null
+          image_filename: string | null
+          image_url: string | null
+          immunogen: string | null
+          isotype: string | null
+          lead_time: string | null
+          light_chain: string | null
+          nbt_num: string | null
           notes: string | null
+          parent_product_id: string | null
+          positive_control: string | null
+          price_usd: number | null
+          product_application: string | null
+          purification: string | null
+          research_area: string | null
+          storage_temperature: string | null
+          supplied_as: string | null
           tags: string[] | null
           updated_at: string
           user_id: string | null
+          website_url_to_product: string | null
         }
         Insert: {
           assigned_to?: string | null
+          catalog_num?: string | null
+          clonality?: string | null
+          clone?: string | null
+          country_of_origin?: string | null
           created_at?: string
+          datasheet_url?: string | null
+          expression_system?: string | null
           gene_id: string
+          host?: string | null
           id?: string
+          image_caption?: string | null
+          image_filename?: string | null
+          image_url?: string | null
+          immunogen?: string | null
+          isotype?: string | null
+          lead_time?: string | null
+          light_chain?: string | null
+          nbt_num?: string | null
           notes?: string | null
+          parent_product_id?: string | null
+          positive_control?: string | null
+          price_usd?: number | null
+          product_application?: string | null
+          purification?: string | null
+          research_area?: string | null
+          storage_temperature?: string | null
+          supplied_as?: string | null
           tags?: string[] | null
           updated_at?: string
           user_id?: string | null
+          website_url_to_product?: string | null
         }
         Update: {
           assigned_to?: string | null
+          catalog_num?: string | null
+          clonality?: string | null
+          clone?: string | null
+          country_of_origin?: string | null
           created_at?: string
+          datasheet_url?: string | null
+          expression_system?: string | null
           gene_id?: string
+          host?: string | null
           id?: string
+          image_caption?: string | null
+          image_filename?: string | null
+          image_url?: string | null
+          immunogen?: string | null
+          isotype?: string | null
+          lead_time?: string | null
+          light_chain?: string | null
+          nbt_num?: string | null
           notes?: string | null
+          parent_product_id?: string | null
+          positive_control?: string | null
+          price_usd?: number | null
+          product_application?: string | null
+          purification?: string | null
+          research_area?: string | null
+          storage_temperature?: string | null
+          supplied_as?: string | null
           tags?: string[] | null
           updated_at?: string
           user_id?: string | null
+          website_url_to_product?: string | null
         }
         Relationships: [
           {
