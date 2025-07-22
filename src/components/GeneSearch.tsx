@@ -1,5 +1,6 @@
+
 import React, { useState } from 'react';
-import { Search, Database, ExternalLink } from 'lucide-react';
+import { Search, Database, ExternalLink, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -18,8 +19,8 @@ export const GeneSearch: React.FC<GeneSearchProps> = ({ onGeneSelect }) => {
   const handleSearch = async () => {
     if (!geneId.trim()) {
       toast({
-        title: "Gene ID Required",
-        description: "Please enter a valid gene ID to search.",
+        title: "Gene Symbol Required",
+        description: "Please enter a valid gene symbol to search.",
         variant: "destructive",
       });
       return;
@@ -27,15 +28,17 @@ export const GeneSearch: React.FC<GeneSearchProps> = ({ onGeneSelect }) => {
 
     setIsSearching(true);
     
-    // Simulate API call delay
-    setTimeout(() => {
-      onGeneSelect(geneId.trim());
-      setIsSearching(false);
+    try {
+      await onGeneSelect(geneId.trim());
+    } catch (error) {
       toast({
-        title: "Search Initiated",
-        description: `Fetching data for gene ID: ${geneId}`,
+        title: "Search Error",
+        description: "Failed to search for gene. Please try again.",
+        variant: "destructive",
       });
-    }, 1000);
+    } finally {
+      setIsSearching(false);
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -52,42 +55,51 @@ export const GeneSearch: React.FC<GeneSearchProps> = ({ onGeneSelect }) => {
           Gene Database Search
         </CardTitle>
         <CardDescription>
-          Enter a gene ID to fetch data from Entrez and SwissProt databases
+          Enter a gene symbol to fetch data from MyGene.info and save it to your database
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex gap-2">
           <Input
-            placeholder="Enter Gene ID (e.g., BRCA1, TP53, EGFR)"
+            placeholder="Enter Gene Symbol (e.g., BRCA1, TP53, EGFR)"
             value={geneId}
             onChange={(e) => setGeneId(e.target.value)}
             onKeyPress={handleKeyPress}
             className="flex-1"
+            disabled={isSearching}
           />
           <Button 
             onClick={handleSearch} 
-            disabled={isSearching}
+            disabled={isSearching || !geneId.trim()}
             className="px-6"
           >
             {isSearching ? (
-              <div className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full" />
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Searching...
+              </>
             ) : (
-              <Search className="h-4 w-4" />
+              <>
+                <Search className="h-4 w-4 mr-2" />
+                Search
+              </>
             )}
-            {!isSearching && "Search"}
           </Button>
         </div>
         
         <div className="flex gap-2 text-sm text-muted-foreground">
           <Badge variant="outline" className="gap-1">
             <ExternalLink className="h-3 w-3" />
-            Entrez
+            MyGene.info
           </Badge>
-          <Badge variant="outline" className="gap-1">
-            <ExternalLink className="h-3 w-3" />
-            SwissProt
-          </Badge>
-          <Badge variant="secondary">Internal DB</Badge>
+          <Badge variant="secondary">Internal Database</Badge>
+        </div>
+        
+        <div className="text-xs text-muted-foreground">
+          <p>
+            <strong>How it works:</strong> First searches your local database. If not found, 
+            fetches data from MyGene.info API and saves it to your database for future reference.
+          </p>
         </div>
       </CardContent>
     </Card>

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Database, Plus, List } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -6,102 +7,88 @@ import { GeneSearch } from '@/components/GeneSearch';
 import { GeneDataDisplay } from '@/components/GeneDataDisplay';
 import { GeneDataTable } from '@/components/GeneDataTable';
 import { AuthButton } from '@/components/AuthButton';
-
-// Mock data for demonstration
-const mockGeneData = {
-  id: 'uuid-brca1-123',
-  symbol: 'BRCA1',
-  entrez_id: '672',
-  name: 'BRCA1 DNA repair associated',
-  description: 'This gene encodes a 190 kD nuclear phosphoprotein that plays a role in maintaining genomic stability and acts as a tumor suppressor.',
-  created_at: '2024-01-15T00:00:00Z',
-  updated_at: '2024-01-15T00:00:00Z',
-  internal_fields: {
-    id: 'uuid-internal-123',
-    gene_id: 'uuid-brca1-123',
-    user_id: 'user-123',
-    notes: 'High priority target for breast cancer research. Associated with hereditary breast and ovarian cancer syndrome.',
-    assigned_to: 'Dr. Smith',
-    tags: ['cancer', 'tumor-suppressor', 'DNA-repair', 'hereditary'],
-    created_at: '2024-01-15T00:00:00Z',
-    updated_at: '2024-01-15T00:00:00Z'
-  },
-  entrezData: {
-    name: 'BRCA1 DNA repair associated',
-    description: 'This gene encodes a 190 kD nuclear phosphoprotein that plays a role in maintaining genomic stability and acts as a tumor suppressor.',
-    chromosome: '17',
-    location: '17q21.31',
-    aliases: ['BRCAI', 'BRCC1', 'BROVCA1', 'FANCS', 'IRIS', 'PNCA4', 'PPP1R53', 'PSCP', 'RNF53'],
-    organism: 'Homo sapiens',
-  },
-  swissprotData: {
-    accession: 'P38398',
-    proteinName: 'Breast cancer type 1 susceptibility protein',
-    function: 'E3 ubiquitin-protein ligase that specifically mediates the formation of Lys-6-linked polyubiquitin chains and plays a central role in DNA repair by facilitating cellular responses to DNA damage.',
-    keywords: ['3D-structure', 'Cancer', 'DNA damage', 'DNA repair', 'Ligase', 'Nuclear', 'Phosphoprotein', 'Tumor suppressor', 'Ubl conjugation'],
-    length: 1863,
-    mass: '207.7 kDa',
-  },
-};
-
-const mockTableData = [
-  {
-    id: 'BRCA1',
-    symbol: 'BRCA1',
-    name: 'BRCA1 DNA repair associated',
-    chromosome: '17',
-    organism: 'Homo sapiens',
-    proteinName: 'Breast cancer type 1 susceptibility protein',
-    priority: 'High' as const,
-    assignedTo: 'Dr. Smith',
-    lastModified: '2024-01-15',
-    status: 'Complete' as const,
-    tags: ['cancer', 'tumor-suppressor'],
-  },
-  {
-    id: 'TP53',
-    symbol: 'TP53',
-    name: 'tumor protein p53',
-    chromosome: '17',
-    organism: 'Homo sapiens',
-    proteinName: 'Cellular tumor antigen p53',
-    priority: 'High' as const,
-    assignedTo: 'Dr. Johnson',
-    lastModified: '2024-01-12',
-    status: 'Partial' as const,
-    tags: ['tumor-suppressor', 'transcription'],
-  },
-  {
-    id: 'EGFR',
-    symbol: 'EGFR',
-    name: 'epidermal growth factor receptor',
-    chromosome: '7',
-    organism: 'Homo sapiens',
-    proteinName: 'Epidermal growth factor receptor',
-    priority: 'Medium' as const,
-    assignedTo: 'Dr. Williams',
-    lastModified: '2024-01-10',
-    status: 'Pending' as const,
-    tags: ['receptor', 'oncogene'],
-  },
-];
+import { useGenes } from '@/hooks/useGenes';
+import { useToast } from '@/hooks/use-toast';
 
 const Index = () => {
   const [selectedGene, setSelectedGene] = useState<string | null>(null);
-  const [currentGeneData, setCurrentGeneData] = useState(mockGeneData);
   const [activeTab, setActiveTab] = useState('search');
+  const { genes, loading, saveGene, fetchExternalGeneData } = useGenes();
+  const { toast } = useToast();
 
-  const handleGeneSelect = (geneId: string) => {
-    setSelectedGene(geneId);
-    setActiveTab('details');
-    // In a real app, this would fetch data from APIs
-    console.log(`Fetching data for gene: ${geneId}`);
+  const handleGeneSelect = async (geneSymbol: string) => {
+    try {
+      // First try to find the gene in our database
+      const existingGene = genes.find(g => g.symbol.toLowerCase() === geneSymbol.toLowerCase());
+      
+      if (existingGene) {
+        setSelectedGene(existingGene.id);
+        setActiveTab('details');
+        return;
+      }
+
+      // If not found, fetch from external API and save to database
+      toast({
+        title: "Fetching gene data",
+        description: `Searching for ${geneSymbol}...`,
+      });
+
+      const externalData = await fetchExternalGeneData(geneSymbol);
+      
+      if (externalData && externalData.hits && externalData.hits.length > 0) {
+        const geneInfo = externalData.hits[0];
+        
+        // Save the gene to database
+        const savedGene = await saveGene({
+          symbol: geneInfo.symbol || geneSymbol,
+          entrez_id: geneInfo.entrezgene?.toString(),
+          name: geneInfo.name,
+          description: geneInfo.summary
+        });
+
+        if (savedGene) {
+          setSelectedGene(savedGene.id);
+          setActiveTab('details');
+        }
+      } else {
+        toast({
+          title: "Gene not found",
+          description: `No data found for gene symbol: ${geneSymbol}`,
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Error handling gene selection:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch gene data. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleGeneUpdate = (updatedData: any) => {
-    setCurrentGeneData(updatedData);
     console.log('Gene data updated:', updatedData);
   };
+
+  const selectedGeneData = selectedGene ? genes.find(g => g.id === selectedGene) : null;
+
+  // Transform genes data for the table
+  const tableData = genes.map(gene => ({
+    id: gene.id,
+    symbol: gene.symbol,
+    name: gene.name || 'Unknown',
+    chromosome: 'N/A', // Will be populated when we get genomic data
+    organism: 'Homo sapiens',
+    proteinName: gene.description || 'N/A',
+    priority: (gene.internal_fields?.tags?.includes('high-priority') ? 'High' : 
+              gene.internal_fields?.tags?.includes('medium-priority') ? 'Medium' : 'Low') as 'High' | 'Medium' | 'Low',
+    assignedTo: gene.internal_fields?.assigned_to || '',
+    lastModified: new Date(gene.internal_fields?.updated_at || gene.updated_at).toLocaleDateString(),
+    status: (gene.internal_fields?.tags?.includes('complete') ? 'Complete' : 
+            gene.internal_fields?.tags?.includes('partial') ? 'Partial' : 'Pending') as 'Complete' | 'Partial' | 'Pending',
+    tags: gene.internal_fields?.tags || [],
+  }));
 
   return (
     <div className="min-h-screen bg-background">
@@ -115,7 +102,7 @@ const Index = () => {
               </div>
               <div>
                 <h1 className="text-xl font-semibold">Gene Database Tool</h1>
-                <p className="text-sm text-muted-foreground">Entrez & SwissProt Integration</p>
+                <p className="text-sm text-muted-foreground">MyGene.info Integration</p>
               </div>
             </div>
             
@@ -157,7 +144,7 @@ const Index = () => {
             </TabsTrigger>
             <TabsTrigger value="browse" className="gap-2">
               <List className="h-4 w-4" />
-              Browse All
+              Browse All ({genes.length})
             </TabsTrigger>
           </TabsList>
 
@@ -165,17 +152,17 @@ const Index = () => {
             <div className="text-center space-y-4 mb-8">
               <h2 className="text-3xl font-bold">Gene Database Search</h2>
               <p className="text-muted-foreground max-w-2xl mx-auto">
-                Enter a gene ID to fetch comprehensive data from Entrez and SwissProt databases, 
-                combined with internal research annotations and notes.
+                Enter a gene symbol to fetch comprehensive data from MyGene.info and save it to your database
+                with internal research annotations and notes.
               </p>
             </div>
             <GeneSearch onGeneSelect={handleGeneSelect} />
           </TabsContent>
 
           <TabsContent value="details" className="space-y-6">
-            {selectedGene ? (
+            {selectedGeneData ? (
               <GeneDataDisplay 
-                geneData={currentGeneData} 
+                geneData={selectedGeneData} 
                 onUpdate={handleGeneUpdate} 
               />
             ) : (
@@ -189,13 +176,20 @@ const Index = () => {
             <div className="text-center space-y-4 mb-8">
               <h2 className="text-2xl font-bold">Gene Database Records</h2>
               <p className="text-muted-foreground">
-                Browse and manage all gene records in the database
+                Browse and manage all {genes.length} gene records in your database
               </p>
             </div>
-            <GeneDataTable 
-              data={mockTableData} 
-              onRowSelect={handleGeneSelect} 
-            />
+            {loading ? (
+              <div className="text-center py-12">
+                <div className="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full mx-auto"></div>
+                <p className="text-muted-foreground mt-4">Loading genes...</p>
+              </div>
+            ) : (
+              <GeneDataTable 
+                data={tableData} 
+                onRowSelect={setSelectedGene} 
+              />
+            )}
           </TabsContent>
         </Tabs>
       </main>
