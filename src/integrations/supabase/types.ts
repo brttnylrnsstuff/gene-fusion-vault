@@ -16,36 +16,61 @@ export type Database = {
     Tables: {
       genes: {
         Row: {
+          alias: string[] | null
+          chromosome_location: string | null
           created_at: string
           description: string | null
+          ensembl_id: string | null
           entrez_id: string | null
           id: string
+          map_location: string | null
           name: string | null
+          summary: string | null
           symbol: string
+          tissue_specificity: string | null
+          type_of_gene: string | null
+          uniprot_id: string | null
           updated_at: string
         }
         Insert: {
+          alias?: string[] | null
+          chromosome_location?: string | null
           created_at?: string
           description?: string | null
+          ensembl_id?: string | null
           entrez_id?: string | null
           id?: string
+          map_location?: string | null
           name?: string | null
+          summary?: string | null
           symbol: string
+          tissue_specificity?: string | null
+          type_of_gene?: string | null
+          uniprot_id?: string | null
           updated_at?: string
         }
         Update: {
+          alias?: string[] | null
+          chromosome_location?: string | null
           created_at?: string
           description?: string | null
+          ensembl_id?: string | null
           entrez_id?: string | null
           id?: string
+          map_location?: string | null
           name?: string | null
+          summary?: string | null
           symbol?: string
+          tissue_specificity?: string | null
+          type_of_gene?: string | null
+          uniprot_id?: string | null
           updated_at?: string
         }
         Relationships: []
       }
       internal_fields: {
         Row: {
+          alternative_name: string | null
           assigned_to: string | null
           catalog_num: string | null
           clonality: string | null
@@ -64,22 +89,31 @@ export type Database = {
           isotype: string | null
           lead_time: string | null
           light_chain: string | null
+          molecular_wt: string | null
           nbt_num: string | null
           notes: string | null
           parent_product_id: string | null
           positive_control: string | null
           price_usd: number | null
           product_application: string | null
+          product_cellular_localization: string | null
           purification: string | null
+          recommended_name: string | null
           research_area: string | null
+          sds_url: string | null
+          species_reactivity: string | null
           storage_temperature: string | null
           supplied_as: string | null
+          synonyms: string | null
           tags: string[] | null
+          target_background_information: string | null
+          unigene: string | null
           updated_at: string
           user_id: string | null
           website_url_to_product: string | null
         }
         Insert: {
+          alternative_name?: string | null
           assigned_to?: string | null
           catalog_num?: string | null
           clonality?: string | null
@@ -98,22 +132,31 @@ export type Database = {
           isotype?: string | null
           lead_time?: string | null
           light_chain?: string | null
+          molecular_wt?: string | null
           nbt_num?: string | null
           notes?: string | null
           parent_product_id?: string | null
           positive_control?: string | null
           price_usd?: number | null
           product_application?: string | null
+          product_cellular_localization?: string | null
           purification?: string | null
+          recommended_name?: string | null
           research_area?: string | null
+          sds_url?: string | null
+          species_reactivity?: string | null
           storage_temperature?: string | null
           supplied_as?: string | null
+          synonyms?: string | null
           tags?: string[] | null
+          target_background_information?: string | null
+          unigene?: string | null
           updated_at?: string
           user_id?: string | null
           website_url_to_product?: string | null
         }
         Update: {
+          alternative_name?: string | null
           assigned_to?: string | null
           catalog_num?: string | null
           clonality?: string | null
@@ -132,17 +175,25 @@ export type Database = {
           isotype?: string | null
           lead_time?: string | null
           light_chain?: string | null
+          molecular_wt?: string | null
           nbt_num?: string | null
           notes?: string | null
           parent_product_id?: string | null
           positive_control?: string | null
           price_usd?: number | null
           product_application?: string | null
+          product_cellular_localization?: string | null
           purification?: string | null
+          recommended_name?: string | null
           research_area?: string | null
+          sds_url?: string | null
+          species_reactivity?: string | null
           storage_temperature?: string | null
           supplied_as?: string | null
+          synonyms?: string | null
           tags?: string[] | null
+          target_background_information?: string | null
+          unigene?: string | null
           updated_at?: string
           user_id?: string | null
           website_url_to_product?: string | null

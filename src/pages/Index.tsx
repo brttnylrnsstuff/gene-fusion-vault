@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Database, Plus, List } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -43,7 +42,8 @@ const Index = () => {
           symbol: geneInfo.symbol || geneSymbol,
           entrez_id: geneInfo.entrezgene?.toString(),
           name: geneInfo.name,
-          description: geneInfo.summary
+          description: geneInfo.summary,
+          external_data: externalData
         });
 
         if (savedGene) {
@@ -73,55 +73,95 @@ const Index = () => {
 
   const selectedGeneData = selectedGene ? genes.find(g => g.id === selectedGene) : null;
 
-  // Transform genes data for the table
-  const tableData = genes.map(gene => {
-    // Extract chromosomal location from external data if available
-    let chromosome = 'N/A';
-    if (gene.external_data?.genomic_pos) {
-      chromosome = gene.external_data.genomic_pos.chr || 'N/A';
+  // Transform genes data for the table - now handling multiple clones per gene
+  const tableData = genes.flatMap(gene => {
+    const clones = gene.internal_fields || [];
+    
+    if (clones.length === 0) {
+      // Gene with no clones
+      return [{
+        id: gene.id,
+        symbol: gene.symbol,
+        name: gene.name || 'Unknown',
+        chromosome: gene.map_location || 'N/A',
+        organism: 'Homo sapiens',
+        proteinName: gene.description || 'N/A',
+        priority: 'Medium' as 'High' | 'Medium' | 'Low',
+        assignedTo: '',
+        lastModified: new Date(gene.updated_at).toLocaleDateString(),
+        status: 'Pending' as 'Complete' | 'Partial' | 'Pending',
+        tags: [],
+        // Additional fields for export
+        notes: '',
+        nbt_num: '',
+        catalog_num: '',
+        host: '',
+        clone: '',
+        clonality: '',
+        isotype: '',
+        price_usd: 0,
+        parent_product_id: '',
+        light_chain: '',
+        storage_temperature: '',
+        lead_time: '',
+        country_of_origin: '',
+        datasheet_url: '',
+        website_url_to_product: '',
+        product_application: '',
+        research_area: '',
+        image_url: '',
+        image_filename: '',
+        image_caption: '',
+        positive_control: '',
+        expression_system: '',
+        purification: '',
+        supplied_as: '',
+        immunogen: ''
+      }];
     }
     
-    return {
-      id: gene.id,
+    // Gene with clones - create a row for each clone
+    return clones.map(clone => ({
+      id: `${gene.id}-${clone.id}`,
       symbol: gene.symbol,
       name: gene.name || 'Unknown',
-      chromosome,
+      chromosome: gene.map_location || 'N/A',
       organism: 'Homo sapiens',
       proteinName: gene.description || 'N/A',
-      priority: (gene.internal_fields?.tags?.includes('high-priority') ? 'High' : 
-                gene.internal_fields?.tags?.includes('medium-priority') ? 'Medium' : 'Low') as 'High' | 'Medium' | 'Low',
-      assignedTo: gene.internal_fields?.assigned_to || '',
-      lastModified: new Date(gene.internal_fields?.updated_at || gene.updated_at).toLocaleDateString(),
-      status: (gene.internal_fields?.tags?.includes('complete') ? 'Complete' : 
-              gene.internal_fields?.tags?.includes('partial') ? 'Partial' : 'Pending') as 'Complete' | 'Partial' | 'Pending',
-      tags: gene.internal_fields?.tags || [],
-      // Include all internal fields for export
-      notes: gene.internal_fields?.notes,
-      nbt_num: gene.internal_fields?.nbt_num,
-      catalog_num: gene.internal_fields?.catalog_num,
-      host: gene.internal_fields?.host,
-      clone: gene.internal_fields?.clone,
-      clonality: gene.internal_fields?.clonality,
-      isotype: gene.internal_fields?.isotype,
-      price_usd: gene.internal_fields?.price_usd,
-      parent_product_id: gene.internal_fields?.parent_product_id,
-      light_chain: gene.internal_fields?.light_chain,
-      storage_temperature: gene.internal_fields?.storage_temperature,
-      lead_time: gene.internal_fields?.lead_time,
-      country_of_origin: gene.internal_fields?.country_of_origin,
-      datasheet_url: gene.internal_fields?.datasheet_url,
-      website_url_to_product: gene.internal_fields?.website_url_to_product,
-      product_application: gene.internal_fields?.product_application,
-      research_area: gene.internal_fields?.research_area,
-      image_url: gene.internal_fields?.image_url,
-      image_filename: gene.internal_fields?.image_filename,
-      image_caption: gene.internal_fields?.image_caption,
-      positive_control: gene.internal_fields?.positive_control,
-      expression_system: gene.internal_fields?.expression_system,
-      purification: gene.internal_fields?.purification,
-      supplied_as: gene.internal_fields?.supplied_as,
-      immunogen: gene.internal_fields?.immunogen,
-    };
+      priority: (clone.tags?.includes('high-priority') ? 'High' : 
+                clone.tags?.includes('medium-priority') ? 'Medium' : 'Low') as 'High' | 'Medium' | 'Low',
+      assignedTo: clone.assigned_to || '',
+      lastModified: new Date(clone.updated_at).toLocaleDateString(),
+      status: (clone.tags?.includes('complete') ? 'Complete' : 
+              clone.tags?.includes('partial') ? 'Partial' : 'Pending') as 'Complete' | 'Partial' | 'Pending',
+      tags: clone.tags || [],
+      // Additional fields for export
+      notes: clone.notes || '',
+      nbt_num: clone.nbt_num || '',
+      catalog_num: clone.catalog_num || '',
+      host: clone.host || '',
+      clone: clone.clone || '',
+      clonality: clone.clonality || '',
+      isotype: clone.isotype || '',
+      price_usd: clone.price_usd || 0,
+      parent_product_id: clone.parent_product_id || '',
+      light_chain: clone.light_chain || '',
+      storage_temperature: clone.storage_temperature || '',
+      lead_time: clone.lead_time || '',
+      country_of_origin: clone.country_of_origin || '',
+      datasheet_url: clone.datasheet_url || '',
+      website_url_to_product: clone.website_url_to_product || '',
+      product_application: clone.product_application || '',
+      research_area: clone.research_area || '',
+      image_url: clone.image_url || '',
+      image_filename: clone.image_filename || '',
+      image_caption: clone.image_caption || '',
+      positive_control: clone.positive_control || '',
+      expression_system: clone.expression_system || '',
+      purification: clone.purification || '',
+      supplied_as: clone.supplied_as || '',
+      immunogen: clone.immunogen || ''
+    }));
   });
 
   return (
