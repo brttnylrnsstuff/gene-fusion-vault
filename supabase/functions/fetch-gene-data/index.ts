@@ -32,7 +32,7 @@ serve(async (req) => {
 
     // Fetch gene data from MyGene.info API
     const response = await fetch(
-      `https://mygene.info/v3/query?q=${encodeURIComponent(geneSymbol)}&species=human&fields=symbol,name,summary,entrezgene,uniprot,ensembl,genomic_pos,type_of_gene&size=5`,
+      `https://mygene.info/v3/query?q=${encodeURIComponent(geneSymbol)}&species=human&fields=symbol,name,summary,entrezgene,uniprot,ensembl,genomic_pos,type_of_gene,genomic_pos_hg19&size=5`,
       {
         headers: {
           'Accept': 'application/json',

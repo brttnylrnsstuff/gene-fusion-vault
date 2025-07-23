@@ -40,6 +40,32 @@ interface GeneRecord {
   lastModified: string;
   status: 'Complete' | 'Partial' | 'Pending';
   tags: string[];
+  // Internal fields for export
+  notes?: string;
+  nbt_num?: string;
+  catalog_num?: string;
+  host?: string;
+  clone?: string;
+  clonality?: string;
+  isotype?: string;
+  price_usd?: number;
+  parent_product_id?: string;
+  light_chain?: string;
+  storage_temperature?: string;
+  lead_time?: string;
+  country_of_origin?: string;
+  datasheet_url?: string;
+  website_url_to_product?: string;
+  product_application?: string;
+  research_area?: string;
+  image_url?: string;
+  image_filename?: string;
+  image_caption?: string;
+  positive_control?: string;
+  expression_system?: string;
+  purification?: string;
+  supplied_as?: string;
+  immunogen?: string;
 }
 
 interface GeneDataTableProps {
@@ -68,8 +94,16 @@ export const GeneDataTable: React.FC<GeneDataTableProps> = ({ data, onRowSelect 
   }, [data, searchTerm, priorityFilter, statusFilter]);
 
   const exportData = () => {
-    const csv = [
-      ['Gene ID', 'Symbol', 'Name', 'Chromosome', 'Organism', 'Protein Name', 'Priority', 'Assigned To', 'Last Modified', 'Status'],
+    const headers = [
+      'Gene ID', 'Symbol', 'Name', 'Chromosome', 'Organism', 'Protein Name', 'Priority', 'Assigned To', 'Last Modified', 'Status', 'Tags',
+      'Notes', 'NBT Number', 'Catalog Number', 'Host', 'Clone', 'Clonality', 'Isotype', 'Price (USD)', 'Parent Product ID',
+      'Light Chain', 'Storage Temperature', 'Lead Time', 'Country of Origin', 'Datasheet URL', 'Website URL', 
+      'Product Application', 'Research Area', 'Image URL', 'Image Filename', 'Image Caption', 'Positive Control',
+      'Expression System', 'Purification', 'Supplied As', 'Immunogen'
+    ];
+    
+    const csvData = [
+      headers,
       ...filteredData.map(gene => [
         gene.id,
         gene.symbol,
@@ -80,9 +114,46 @@ export const GeneDataTable: React.FC<GeneDataTableProps> = ({ data, onRowSelect 
         gene.priority,
         gene.assignedTo,
         gene.lastModified,
-        gene.status
+        gene.status,
+        Array.isArray(gene.tags) ? gene.tags.join('; ') : '',
+        gene.notes || '',
+        gene.nbt_num || '',
+        gene.catalog_num || '',
+        gene.host || '',
+        gene.clone || '',
+        gene.clonality || '',
+        gene.isotype || '',
+        gene.price_usd ? gene.price_usd.toString() : '',
+        gene.parent_product_id || '',
+        gene.light_chain || '',
+        gene.storage_temperature || '',
+        gene.lead_time || '',
+        gene.country_of_origin || '',
+        gene.datasheet_url || '',
+        gene.website_url_to_product || '',
+        gene.product_application || '',
+        gene.research_area || '',
+        gene.image_url || '',
+        gene.image_filename || '',
+        gene.image_caption || '',
+        gene.positive_control || '',
+        gene.expression_system || '',
+        gene.purification || '',
+        gene.supplied_as || '',
+        gene.immunogen || ''
       ])
-    ].map(row => row.join(',')).join('\n');
+    ];
+    
+    // Properly escape CSV fields that contain commas or quotes
+    const csv = csvData.map(row => 
+      row.map(field => {
+        const stringField = String(field);
+        if (stringField.includes(',') || stringField.includes('"') || stringField.includes('\n')) {
+          return `"${stringField.replace(/"/g, '""')}"`;
+        }
+        return stringField;
+      }).join(',')
+    ).join('\n');
 
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);

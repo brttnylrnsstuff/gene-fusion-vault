@@ -51,6 +51,21 @@ export interface GeneData extends Gene {
   internal_fields?: InternalFields;
   entrezData?: any;
   swissprotData?: any;
+  external_data?: {
+    genomic_pos?: {
+      chr?: string;
+      start?: number;
+      end?: number;
+      strand?: number;
+    };
+    uniprot?: {
+      'Swiss-Prot'?: string;
+    };
+    ensembl?: {
+      gene?: string;
+    };
+    type_of_gene?: string;
+  };
 }
 
 export const useGenes = () => {

@@ -74,21 +74,55 @@ const Index = () => {
   const selectedGeneData = selectedGene ? genes.find(g => g.id === selectedGene) : null;
 
   // Transform genes data for the table
-  const tableData = genes.map(gene => ({
-    id: gene.id,
-    symbol: gene.symbol,
-    name: gene.name || 'Unknown',
-    chromosome: 'N/A', // Will be populated when we get genomic data
-    organism: 'Homo sapiens',
-    proteinName: gene.description || 'N/A',
-    priority: (gene.internal_fields?.tags?.includes('high-priority') ? 'High' : 
-              gene.internal_fields?.tags?.includes('medium-priority') ? 'Medium' : 'Low') as 'High' | 'Medium' | 'Low',
-    assignedTo: gene.internal_fields?.assigned_to || '',
-    lastModified: new Date(gene.internal_fields?.updated_at || gene.updated_at).toLocaleDateString(),
-    status: (gene.internal_fields?.tags?.includes('complete') ? 'Complete' : 
-            gene.internal_fields?.tags?.includes('partial') ? 'Partial' : 'Pending') as 'Complete' | 'Partial' | 'Pending',
-    tags: gene.internal_fields?.tags || [],
-  }));
+  const tableData = genes.map(gene => {
+    // Extract chromosomal location from external data if available
+    let chromosome = 'N/A';
+    if (gene.external_data?.genomic_pos) {
+      chromosome = gene.external_data.genomic_pos.chr || 'N/A';
+    }
+    
+    return {
+      id: gene.id,
+      symbol: gene.symbol,
+      name: gene.name || 'Unknown',
+      chromosome,
+      organism: 'Homo sapiens',
+      proteinName: gene.description || 'N/A',
+      priority: (gene.internal_fields?.tags?.includes('high-priority') ? 'High' : 
+                gene.internal_fields?.tags?.includes('medium-priority') ? 'Medium' : 'Low') as 'High' | 'Medium' | 'Low',
+      assignedTo: gene.internal_fields?.assigned_to || '',
+      lastModified: new Date(gene.internal_fields?.updated_at || gene.updated_at).toLocaleDateString(),
+      status: (gene.internal_fields?.tags?.includes('complete') ? 'Complete' : 
+              gene.internal_fields?.tags?.includes('partial') ? 'Partial' : 'Pending') as 'Complete' | 'Partial' | 'Pending',
+      tags: gene.internal_fields?.tags || [],
+      // Include all internal fields for export
+      notes: gene.internal_fields?.notes,
+      nbt_num: gene.internal_fields?.nbt_num,
+      catalog_num: gene.internal_fields?.catalog_num,
+      host: gene.internal_fields?.host,
+      clone: gene.internal_fields?.clone,
+      clonality: gene.internal_fields?.clonality,
+      isotype: gene.internal_fields?.isotype,
+      price_usd: gene.internal_fields?.price_usd,
+      parent_product_id: gene.internal_fields?.parent_product_id,
+      light_chain: gene.internal_fields?.light_chain,
+      storage_temperature: gene.internal_fields?.storage_temperature,
+      lead_time: gene.internal_fields?.lead_time,
+      country_of_origin: gene.internal_fields?.country_of_origin,
+      datasheet_url: gene.internal_fields?.datasheet_url,
+      website_url_to_product: gene.internal_fields?.website_url_to_product,
+      product_application: gene.internal_fields?.product_application,
+      research_area: gene.internal_fields?.research_area,
+      image_url: gene.internal_fields?.image_url,
+      image_filename: gene.internal_fields?.image_filename,
+      image_caption: gene.internal_fields?.image_caption,
+      positive_control: gene.internal_fields?.positive_control,
+      expression_system: gene.internal_fields?.expression_system,
+      purification: gene.internal_fields?.purification,
+      supplied_as: gene.internal_fields?.supplied_as,
+      immunogen: gene.internal_fields?.immunogen,
+    };
+  });
 
   return (
     <div className="min-h-screen bg-background">
