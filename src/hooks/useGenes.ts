@@ -19,6 +19,30 @@ export interface InternalFields {
   notes?: string;
   assigned_to?: string;
   tags?: string[];
+  parent_product_id?: string;
+  nbt_num?: string;
+  catalog_num?: string;
+  host?: string;
+  clone?: string;
+  clonality?: string;
+  isotype?: string;
+  light_chain?: string;
+  storage_temperature?: string;
+  lead_time?: string;
+  country_of_origin?: string;
+  datasheet_url?: string;
+  website_url_to_product?: string;
+  price_usd?: number;
+  product_application?: string;
+  research_area?: string;
+  image_url?: string;
+  image_filename?: string;
+  image_caption?: string;
+  positive_control?: string;
+  expression_system?: string;
+  purification?: string;
+  supplied_as?: string;
+  immunogen?: string;
   created_at: string;
   updated_at: string;
 }
@@ -123,9 +147,7 @@ export const useGenes = () => {
         .upsert({
           gene_id: geneId,
           user_id: user.id,
-          notes: fields.notes,
-          assigned_to: fields.assigned_to,
-          tags: fields.tags
+          ...fields
         })
         .select()
         .single();

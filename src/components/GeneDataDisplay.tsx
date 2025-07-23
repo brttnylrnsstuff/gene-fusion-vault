@@ -20,7 +20,7 @@ export const GeneDataDisplay: React.FC<GeneDataDisplayProps> = ({ geneData, onUp
   const [editData, setEditData] = useState({
     notes: geneData.internal_fields?.notes || '',
     assigned_to: geneData.internal_fields?.assigned_to || '',
-    tags: geneData.internal_fields?.tags || [],
+    tags: geneData.internal_fields?.tags?.join(', ') || '',
     parent_product_id: geneData.internal_fields?.parent_product_id || '',
     nbt_num: geneData.internal_fields?.nbt_num || '',
     catalog_num: geneData.internal_fields?.catalog_num || '',
@@ -71,7 +71,7 @@ export const GeneDataDisplay: React.FC<GeneDataDisplayProps> = ({ geneData, onUp
     try {
       const fieldsToUpdate = {
         ...editData,
-        tags: Array.isArray(editData.tags) ? editData.tags : editData.tags.split(',').map(t => t.trim()).filter(t => t),
+        tags: typeof editData.tags === 'string' ? editData.tags.split(',').map(t => t.trim()).filter(t => t) : [],
         price_usd: editData.price_usd ? parseFloat(editData.price_usd) : undefined,
       };
 
@@ -98,7 +98,7 @@ export const GeneDataDisplay: React.FC<GeneDataDisplayProps> = ({ geneData, onUp
     setEditData({
       notes: geneData.internal_fields?.notes || '',
       assigned_to: geneData.internal_fields?.assigned_to || '',
-      tags: geneData.internal_fields?.tags || [],
+      tags: geneData.internal_fields?.tags?.join(', ') || '',
       parent_product_id: geneData.internal_fields?.parent_product_id || '',
       nbt_num: geneData.internal_fields?.nbt_num || '',
       catalog_num: geneData.internal_fields?.catalog_num || '',
@@ -424,8 +424,8 @@ export const GeneDataDisplay: React.FC<GeneDataDisplayProps> = ({ geneData, onUp
                 <div>
                   <label className="text-sm font-medium">Tags (comma-separated)</label>
                   <Input
-                    value={Array.isArray(editData.tags) ? editData.tags.join(', ') : editData.tags}
-                    onChange={(e) => setEditData({ ...editData, tags: e.target.value.split(',').map(t => t.trim()).filter(t => t) })}
+                     value={editData.tags}
+                     onChange={(e) => setEditData({ ...editData, tags: e.target.value })}
                     placeholder="cancer, oncogene, biomarker"
                     className="mt-1"
                   />
