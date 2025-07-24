@@ -80,7 +80,8 @@ const Index = () => {
     if (clones.length === 0) {
       // Gene with no clones
       return [{
-        id: gene.id,
+        id: gene.id, // Keep original gene ID
+        geneId: gene.id, // Add separate geneId field for lookup
         symbol: gene.symbol,
         name: gene.name || 'Unknown',
         chromosome: gene.map_location || 'N/A',
@@ -122,7 +123,8 @@ const Index = () => {
     
     // Gene with clones - create a row for each clone
     return clones.map(clone => ({
-      id: `${gene.id}-${clone.id}`,
+      id: `${gene.id}-${clone.id}`, // Keep composite ID for table row uniqueness
+      geneId: gene.id, // Add separate geneId field for lookup
       symbol: gene.symbol,
       name: gene.name || 'Unknown',
       chromosome: gene.map_location || 'N/A',
@@ -261,7 +263,10 @@ const Index = () => {
             ) : (
               <GeneDataTable 
                 data={tableData} 
-                onRowSelect={setSelectedGene} 
+                onRowSelect={(geneId) => {
+                  setSelectedGene(geneId);
+                  setActiveTab('details');
+                }} 
               />
             )}
           </TabsContent>

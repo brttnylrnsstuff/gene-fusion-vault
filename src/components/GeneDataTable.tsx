@@ -30,6 +30,7 @@ import {
 
 interface GeneRecord {
   id: string;
+  geneId: string; // Add geneId field for proper gene lookup
   symbol: string;
   name: string;
   chromosome: string;
@@ -259,7 +260,7 @@ export const GeneDataTable: React.FC<GeneDataTableProps> = ({ data, onRowSelect 
                   <TableRow 
                     key={gene.id} 
                     className="cursor-pointer hover:bg-muted/50"
-                    onClick={() => onRowSelect(gene.id)}
+                    onClick={() => onRowSelect(gene.geneId)}
                   >
                     <TableCell>
                       <div>
@@ -300,7 +301,7 @@ export const GeneDataTable: React.FC<GeneDataTableProps> = ({ data, onRowSelect 
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <DropdownMenuItem onClick={() => onRowSelect(gene.id)}>
+                          <DropdownMenuItem onClick={() => onRowSelect(gene.geneId)}>
                             View Details
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
