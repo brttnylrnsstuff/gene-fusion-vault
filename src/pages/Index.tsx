@@ -8,7 +8,7 @@ import { GeneDataTable } from '@/components/GeneDataTable';
 import { AuthButton } from '@/components/AuthButton';
 import { CSVImportDialog } from '@/components/CSVImportDialog';
 import { useGenes } from '@/hooks/useGenes';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/components/ui/use-toast';
 
 const Index = () => {
   const [selectedGene, setSelectedGene] = useState<string | null>(null);
@@ -30,36 +30,32 @@ const Index = () => {
       // If not found, fetch from external API and save to database
       toast({
         title: "Fetching gene data",
-        description: `Searching for ${geneSymbol}...`,
+        description: `Looking up ${geneSymbol} from external databases...`,
       });
 
       const externalData = await fetchExternalGeneData(geneSymbol);
       
       if (externalData && externalData.hits && externalData.hits.length > 0) {
-        const geneInfo = externalData.hits[0];
-        
-        // Save the gene to database
-        const savedGene = await saveGene({
-          symbol: geneInfo.symbol || geneSymbol,
-          entrez_id: geneInfo.entrezgene?.toString(),
-          name: geneInfo.name,
-          description: geneInfo.summary,
+        const hit = externalData.hits[0];
+        const geneData = {
+          symbol: geneSymbol.toUpperCase(),
+          name: hit.name,
+          entrez_id: hit.entrezgene?.toString(),
           external_data: externalData
-        });
+        };
 
-        if (savedGene) {
-          setSelectedGene(savedGene.id);
-          setActiveTab('details');
-        }
+        const savedGene = await saveGene(geneData);
+        setSelectedGene(savedGene.id);
+        setActiveTab('details');
       } else {
         toast({
           title: "Gene not found",
-          description: `No data found for gene symbol: ${geneSymbol}`,
+          description: `No data found for ${geneSymbol} in external databases.`,
           variant: "destructive",
         });
       }
     } catch (error) {
-      console.error('Error handling gene selection:', error);
+      console.error('Error selecting gene:', error);
       toast({
         title: "Error",
         description: "Failed to fetch gene data. Please try again.",
@@ -69,12 +65,14 @@ const Index = () => {
   };
 
   const handleGeneUpdate = (updatedData: any) => {
-    console.log('Gene data updated:', updatedData);
+    // Handle gene data updates here if needed
+    console.log('Gene updated:', updatedData);
   };
 
+  // Find the selected gene data
   const selectedGeneData = selectedGene ? genes.find(g => g.id === selectedGene) : null;
 
-  // Transform genes data for the table - now handling multiple clones per gene
+  // Transform genes data for table display
   const tableData = genes.flatMap(gene => {
     const clones = gene.internal_fields || [];
     
@@ -86,39 +84,21 @@ const Index = () => {
         symbol: gene.symbol,
         name: gene.name || 'Unknown',
         chromosome: gene.map_location || 'N/A',
-        organism: 'Homo sapiens',
-        proteinName: gene.description || 'N/A',
-        priority: 'Medium' as 'High' | 'Medium' | 'Low',
-        assignedTo: '',
-        lastModified: new Date(gene.updated_at).toLocaleDateString(),
-        status: 'Pending' as 'Complete' | 'Partial' | 'Pending',
-        tags: [],
-        // Additional fields for export
-        notes: '',
-        nbt_num: '',
-        catalog_num: '',
-        host: '',
-        clone: '',
-        clonality: '',
-        isotype: '',
-        price_usd: 0,
-        parent_product_id: '',
-        light_chain: '',
-        storage_temperature: '',
-        lead_time: '',
-        country_of_origin: '',
-        datasheet_url: '',
-        website_url_to_product: '',
-        product_application: '',
-        research_area: '',
-        image_url: '',
-        image_filename: '',
-        image_caption: '',
-        positive_control: '',
-        expression_system: '',
-        purification: '',
-        supplied_as: '',
-        immunogen: ''
+        organism: 'Human', // Default organism
+        proteinName: gene.name || gene.symbol || 'Unknown',
+        priority: 'Medium' as const,
+        assignedTo: 'Unassigned',
+        lastModified: gene.updated_at || gene.created_at,
+        status: 'Complete' as const,
+        tags: gene.alias || [],
+        
+        // Optional fields for export
+        notes: 'N/A',
+        nbt_num: 'N/A',
+        catalog_num: 'N/A',
+        host: 'N/A',
+        clone: 'N/A',
+        clonality: 'N/A'
       }];
     }
     
@@ -129,97 +109,70 @@ const Index = () => {
       symbol: gene.symbol,
       name: gene.name || 'Unknown',
       chromosome: gene.map_location || 'N/A',
-      organism: 'Homo sapiens',
-      proteinName: gene.description || 'N/A',
-      priority: (clone.tags?.includes('high-priority') ? 'High' : 
-                clone.tags?.includes('medium-priority') ? 'Medium' : 'Low') as 'High' | 'Medium' | 'Low',
-      assignedTo: clone.assigned_to || '',
-      lastModified: new Date(clone.updated_at).toLocaleDateString(),
-      status: (clone.tags?.includes('complete') ? 'Complete' : 
-              clone.tags?.includes('partial') ? 'Partial' : 'Pending') as 'Complete' | 'Partial' | 'Pending',
+      organism: 'Human', // Default organism
+      proteinName: gene.name || gene.symbol || 'Unknown',
+      priority: 'Medium' as const,
+      assignedTo: clone.assigned_to || 'Unassigned',
+      lastModified: clone.updated_at || clone.created_at,
+      status: 'Complete' as const,
       tags: clone.tags || [],
-      // Additional fields for export
-      notes: clone.notes || '',
-      nbt_num: clone.nbt_num || '',
-      catalog_num: clone.catalog_num || '',
-      host: clone.host || '',
-      clone: clone.clone || '',
-      clonality: clone.clonality || '',
-      isotype: clone.isotype || '',
-      price_usd: clone.price_usd || 0,
-      parent_product_id: clone.parent_product_id || '',
-      light_chain: clone.light_chain || '',
-      storage_temperature: clone.storage_temperature || '',
-      lead_time: clone.lead_time || '',
-      country_of_origin: clone.country_of_origin || '',
-      datasheet_url: clone.datasheet_url || '',
-      website_url_to_product: clone.website_url_to_product || '',
-      product_application: clone.product_application || '',
-      research_area: clone.research_area || '',
-      image_url: clone.image_url || '',
-      image_filename: clone.image_filename || '',
-      image_caption: clone.image_caption || '',
-      positive_control: clone.positive_control || '',
-      expression_system: clone.expression_system || '',
-      purification: clone.purification || '',
-      supplied_as: clone.supplied_as || '',
-      immunogen: clone.immunogen || ''
+      
+      // Optional fields for export
+      notes: clone.notes || 'N/A',
+      nbt_num: clone.nbt_num || 'N/A',
+      catalog_num: clone.catalog_num || 'N/A',
+      host: clone.host || 'N/A',
+      clone: clone.clone || 'N/A',
+      clonality: clone.clonality || 'N/A'
     }));
   });
 
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="h-8 w-8 bg-primary rounded-lg flex items-center justify-center">
-                <Database className="h-5 w-5 text-primary-foreground" />
-              </div>
-              <div>
-                <h1 className="text-xl font-semibold">Gene Database Tool</h1>
-                <p className="text-sm text-muted-foreground">MyGene.info Integration</p>
-              </div>
+      <header className="border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container flex h-14 max-w-screen-2xl items-center">
+          <div className="mr-4 hidden md:flex">
+            <a className="mr-6 flex items-center space-x-2" href="/">
+              <Database className="h-6 w-6" />
+              <span className="hidden font-bold sm:inline-block">Gene Database Tool</span>
+            </a>
+            <nav className="flex items-center gap-4 text-sm lg:gap-6">
+              <a className="transition-colors hover:text-foreground/80 text-foreground" href="#search">
+                Search
+              </a>
+              <a className="transition-colors hover:text-foreground/80 text-muted-foreground" href="#browse">
+                Browse
+              </a>
+            </nav>
+          </div>
+          <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
+            <div className="w-full flex-1 md:w-auto md:flex-none">
+              <Button variant="outline" className="relative h-8 w-full justify-start rounded-[0.5rem] bg-muted/50 text-sm font-normal text-muted-foreground shadow-none sm:pr-12 md:w-40 lg:w-64">
+                <span className="hidden lg:inline-flex">Search genes...</span>
+                <span className="inline-flex lg:hidden">Search...</span>
+              </Button>
             </div>
-            
-            <div className="flex items-center gap-2">
+            <nav className="flex items-center">
               <AuthButton />
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => setActiveTab('search')}
-                className="gap-2"
-              >
-                <Plus className="h-4 w-4" />
-                New Search
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => setActiveTab('browse')}
-                className="gap-2"
-              >
-                <List className="h-4 w-4" />
-                Browse All
-              </Button>
-            </div>
+            </nav>
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 py-8">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3 mb-8">
-            <TabsTrigger value="search" className="gap-2">
-              <Database className="h-4 w-4" />
-              Search
+      <main className="container mx-auto py-8 px-4">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="search" className="flex items-center gap-2">
+              <Plus className="h-4 w-4" />
+              Gene Search
             </TabsTrigger>
-            <TabsTrigger value="details" disabled={!selectedGene} className="gap-2">
+            <TabsTrigger value="details" disabled={!selectedGeneData} className="flex items-center gap-2">
+              <Database className="h-4 w-4" />
               Gene Details
             </TabsTrigger>
-            <TabsTrigger value="browse" className="gap-2">
+            <TabsTrigger value="browse" className="flex items-center gap-2">
               <List className="h-4 w-4" />
               Browse All ({genes.length})
             </TabsTrigger>
@@ -227,24 +180,56 @@ const Index = () => {
 
           <TabsContent value="search" className="space-y-6">
             <div className="text-center space-y-4 mb-8">
-              <h2 className="text-3xl font-bold">Gene Database Search</h2>
-              <p className="text-muted-foreground max-w-2xl mx-auto">
-                Enter a gene symbol to fetch comprehensive data from MyGene.info and save it to your database
-                with internal research annotations and notes.
+              <h1 className="text-4xl font-bold tracking-tighter">Gene Database Search</h1>
+              <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+                Search for genes by symbol to view comprehensive information from multiple databases including NCBI, UniProt, and Ensembl.
               </p>
             </div>
-            <GeneSearch onGeneSelect={handleGeneSelect} />
+            
+            <div className="max-w-2xl mx-auto">
+              <GeneSearch onGeneSelect={handleGeneSelect} />
+            </div>
+            
+            <div className="text-center space-y-4">
+              <div className="flex items-center justify-center gap-4 text-sm text-muted-foreground">
+                <div className="flex items-center gap-2">
+                  <div className="h-2 w-2 rounded-full bg-green-500"></div>
+                  <span>External API Integration</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="h-2 w-2 rounded-full bg-blue-500"></div>
+                  <span>Real-time Data Fetching</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="h-2 w-2 rounded-full bg-purple-500"></div>
+                  <span>Comprehensive Gene Information</span>
+                </div>
+              </div>
+            </div>
           </TabsContent>
 
           <TabsContent value="details" className="space-y-6">
             {selectedGeneData ? (
-              <GeneDataDisplay 
-                geneData={selectedGeneData} 
-                onUpdate={handleGeneUpdate} 
-              />
+              <>
+                <div className="flex items-center gap-2 mb-6">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => setActiveTab('search')}
+                  >
+                    Back to Search
+                  </Button>
+                  <ChevronRight className="h-4 w-4" />
+                  <h2 className="text-2xl font-bold">{selectedGeneData.symbol}</h2>
+                </div>
+                <GeneDataDisplay 
+                  geneData={selectedGeneData} 
+                  onUpdate={handleGeneUpdate} 
+                />
+              </>
             ) : (
-              <div className="text-center py-12">
-                <p className="text-muted-foreground">No gene selected. Please search for a gene first.</p>
+              <div className="text-center">
+                <p>No gene selected. Please search for a gene first.</p>
               </div>
             )}
           </TabsContent>
@@ -267,10 +252,7 @@ const Index = () => {
               />
             </div>
             {loading ? (
-              <div className="text-center py-12">
-                <div className="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full mx-auto"></div>
-                <p className="text-muted-foreground mt-4">Loading genes...</p>
-              </div>
+              <div className="text-center">Loading genes...</div>
             ) : (
               <GeneDataTable 
                 data={tableData} 
