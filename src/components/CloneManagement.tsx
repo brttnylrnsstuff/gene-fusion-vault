@@ -6,9 +6,10 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Edit2, Trash2, Save, X, Copy } from 'lucide-react';
+import { Plus, Edit2, Trash2, Save, X, Copy, Upload } from 'lucide-react';
 import { GeneData, InternalFields, useGenes } from '@/hooks/useGenes';
 import { useToast } from '@/components/ui/use-toast';
+import { CSVImportDialog } from './CSVImportDialog';
 
 interface CloneManagementProps {
   geneData: GeneData;
@@ -130,10 +131,20 @@ export const CloneManagement: React.FC<CloneManagementProps> = ({ geneData, onUp
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-medium">Clone Management ({clones.length} clones)</h3>
-        <Button onClick={handleAddNew} size="sm">
-          <Plus className="h-4 w-4 mr-2" />
-          Add Clone
-        </Button>
+        <div className="flex gap-2">
+          <CSVImportDialog 
+            trigger={
+              <Button variant="outline" size="sm">
+                <Upload className="h-4 w-4 mr-2" />
+                Import Clones
+              </Button>
+            }
+          />
+          <Button onClick={handleAddNew} size="sm">
+            <Plus className="h-4 w-4 mr-2" />
+            Add Clone
+          </Button>
+        </div>
       </div>
 
       {/* Add New Clone Form */}

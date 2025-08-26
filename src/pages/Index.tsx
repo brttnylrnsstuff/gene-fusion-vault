@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { Database, Plus, List } from 'lucide-react';
+import { Database, Plus, List, ChevronRight, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { GeneSearch } from '@/components/GeneSearch';
 import { GeneDataDisplay } from '@/components/GeneDataDisplay';
 import { GeneDataTable } from '@/components/GeneDataTable';
 import { AuthButton } from '@/components/AuthButton';
+import { CSVImportDialog } from '@/components/CSVImportDialog';
 import { useGenes } from '@/hooks/useGenes';
 import { useToast } from '@/hooks/use-toast';
 
@@ -249,11 +250,21 @@ const Index = () => {
           </TabsContent>
 
           <TabsContent value="browse" className="space-y-6">
-            <div className="text-center space-y-4 mb-8">
-              <h2 className="text-2xl font-bold">Gene Database Records</h2>
-              <p className="text-muted-foreground">
-                Browse and manage all {genes.length} gene records in your database
-              </p>
+            <div className="flex items-center justify-between mb-8">
+              <div className="text-center space-y-4">
+                <h2 className="text-2xl font-bold">Gene Database Records</h2>
+                <p className="text-muted-foreground">
+                  Browse and manage all {genes.length} gene records in your database
+                </p>
+              </div>
+              <CSVImportDialog 
+                trigger={
+                  <Button>
+                    <Upload className="h-4 w-4 mr-2" />
+                    Import CSV
+                  </Button>
+                }
+              />
             </div>
             {loading ? (
               <div className="text-center py-12">

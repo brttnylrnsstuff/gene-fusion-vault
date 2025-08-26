@@ -346,6 +346,164 @@ export const useGenes = () => {
     }
   };
 
+  const bulkImportGenes = async (
+    genes: Array<{
+      symbol: string;
+      name?: string;
+      entrezgene?: string;
+      chromosome?: string;
+      map_location?: string;
+      type_of_gene?: string;
+      summary?: string;
+    }>,
+    onProgress?: (progress: number) => void
+  ) => {
+    let successful = 0;
+    let failed = 0;
+
+    for (let i = 0; i < genes.length; i++) {
+      try {
+        const geneData = genes[i];
+        
+        // Check if gene already exists
+        const { data: existingGene } = await supabase
+          .from('genes')
+          .select('id')
+          .eq('symbol', geneData.symbol)
+          .single();
+
+        if (existingGene) {
+          // Update existing gene
+          await supabase
+            .from('genes')
+            .update({
+              name: geneData.name,
+              entrez_id: geneData.entrezgene,
+              map_location: geneData.map_location,
+              type_of_gene: geneData.type_of_gene,
+              summary: geneData.summary,
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', existingGene.id);
+        } else {
+          // Insert new gene
+          await supabase
+            .from('genes')
+            .insert({
+              symbol: geneData.symbol,
+              name: geneData.name,
+              entrez_id: geneData.entrezgene,
+              map_location: geneData.map_location,
+              type_of_gene: geneData.type_of_gene,
+              summary: geneData.summary
+            });
+        }
+        
+        successful++;
+      } catch (error) {
+        console.error(`Failed to import gene ${genes[i].symbol}:`, error);
+        failed++;
+      }
+      
+      // Update progress
+      if (onProgress) {
+        onProgress((i + 1) / genes.length * 100);
+      }
+    }
+
+    await fetchGenes();
+    return { successful, failed };
+  };
+
+  const bulkImportClones = async (
+    clones: Array<{
+      gene_symbol: string;
+      clone_id: string;
+      vector?: string;
+      bacterial_strain?: string;
+      antibiotic_resistance?: string;
+      concentration?: number;
+      location?: string;
+      notes?: string;
+      priority?: string;
+      status?: string;
+    }>,
+    onProgress?: (progress: number) => void
+  ) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      throw new Error('User must be authenticated to import clones');
+    }
+
+    let successful = 0;
+    let failed = 0;
+
+    for (let i = 0; i < clones.length; i++) {
+      try {
+        const cloneData = clones[i];
+        
+        // Find the gene ID by symbol
+        const { data: gene } = await supabase
+          .from('genes')
+          .select('id')
+          .eq('symbol', cloneData.gene_symbol)
+          .single();
+
+        if (!gene) {
+          console.error(`Gene not found for symbol: ${cloneData.gene_symbol}`);
+          failed++;
+          continue;
+        }
+
+        // Check if clone already exists for this user and gene
+        const { data: existingClone } = await supabase
+          .from('internal_fields')
+          .select('id')
+          .eq('gene_id', gene.id)
+          .eq('user_id', user.id)
+          .eq('clone', cloneData.clone_id)
+          .single();
+
+        const internalFieldsData = {
+          gene_id: gene.id,
+          user_id: user.id,
+          clone: cloneData.clone_id,
+          notes: cloneData.notes,
+          host: cloneData.bacterial_strain,
+          // Map clone data to internal fields schema
+          // Note: You may need to adjust these mappings based on your exact schema
+          updated_at: new Date().toISOString()
+        };
+
+        if (existingClone) {
+          // Update existing clone
+          await supabase
+            .from('internal_fields')
+            .update(internalFieldsData)
+            .eq('id', existingClone.id);
+        } else {
+          // Insert new clone
+          await supabase
+            .from('internal_fields')
+            .insert(internalFieldsData);
+        }
+        
+        successful++;
+      } catch (error) {
+        console.error(`Failed to import clone ${clones[i].clone_id}:`, error);
+        failed++;
+      }
+      
+      // Update progress
+      if (onProgress) {
+        onProgress((i + 1) / clones.length * 100);
+      }
+    }
+
+    await fetchGenes();
+    return { successful, failed };
+  };
+
   useEffect(() => {
     fetchGenes();
   }, []);
@@ -358,6 +516,8 @@ export const useGenes = () => {
     updateInternalFields,
     deleteClone,
     searchGenes,
-    fetchExternalGeneData
+    fetchExternalGeneData,
+    bulkImportGenes,
+    bulkImportClones
   };
 };
